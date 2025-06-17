@@ -53,23 +53,10 @@ public class WatchModeService {
         }
     }
 
-    public TitleDetailsDTO getTitleDetails(Integer titleId, String region, String language, String appendToResponse) {
+    public TitleDetailsDTO getTitleDetails(Integer titleId) {
         try {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "/title/" + titleId + "/details/")
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl + "/title/" + titleId + "/details?region=BR&language=pt&append_to_response=sources")
                     .queryParam("apiKey", apiKey);
-
-            if (region != null) {
-                builder.queryParam("regions", region);
-            }
-
-            if (language != null) {
-                builder.queryParam("language", language);
-            }
-
-            if (appendToResponse != null) {
-                builder.queryParam("append_to_response", appendToResponse);
-            }
-
             String url = builder.build().toUriString();
 
             return restTemplate.getForObject(url, TitleDetailsDTO.class);

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
  * This controller provides endpoints for searching titles and retrieving detailed information about specific titles
  */
 @RestController
-@RequestMapping("/api/watchmode")
+@RequestMapping("/api")
 public class WatchModeController {
 
     private final WatchModeService watchModeService;
@@ -40,19 +40,11 @@ public class WatchModeController {
      * Get detailed information about a specific title from the WatchMode API
      * 
      * @param titleId The ID of the title to retrieve details for
-     * @param region The region code to filter sources by (e.g., "US", "BR")
-     * @param language The language code for localized content (e.g., "en", "pt")
-     * @param appendToResponse Additional data to include in the response (e.g., "sources")
      * @return Detailed information about the requested title
      */
     @GetMapping("/title/{titleId}")
-    public ResponseEntity<TitleDetailsDTO> getTitleDetails(
-            @PathVariable Integer titleId,
-            @RequestParam(required = false) String region,
-            @RequestParam(required = false) String language,
-            @RequestParam(required = false, name = "append_to_response") String appendToResponse) {
-
-        TitleDetailsDTO response = watchModeService.getTitleDetails(titleId, region, language, appendToResponse);
+    public ResponseEntity<TitleDetailsDTO> getTitleDetails(@PathVariable Integer titleId) {
+        TitleDetailsDTO response = watchModeService.getTitleDetails(titleId);
         return ResponseEntity.ok(response);
     }
 }

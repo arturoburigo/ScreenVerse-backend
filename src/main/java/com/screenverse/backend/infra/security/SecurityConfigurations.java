@@ -17,7 +17,7 @@ public class SecurityConfigurations {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
                    req.requestMatchers("/users").permitAll();
-                   req.requestMatchers("/api/watchmode/**").permitAll();
+                   req.requestMatchers("/api/**").permitAll();
                    req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
                    req.anyRequest().authenticated();
                 })
