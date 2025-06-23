@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO representing a search result from the WatchMode API
  * Contains basic information about a title or person
+ * Can also include detailed information if available
  */
 @Data
 @NoArgsConstructor
@@ -20,4 +21,7 @@ public class SearchResultDTO {
     private String imdb_id;
     private Integer tmdb_id;
     private String tmdb_type;
+
+    // Detailed information about the title, populated for the first 5 results
+    private TitleDetailsDTO details;
 }

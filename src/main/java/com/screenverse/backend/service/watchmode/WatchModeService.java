@@ -1,6 +1,7 @@
 package com.screenverse.backend.service.watchmode;
 
 import com.screenverse.backend.dto.watchmode.SearchResponseDTO;
+import com.screenverse.backend.dto.watchmode.SearchResultDTO;
 import com.screenverse.backend.dto.watchmode.TitleDetailsDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,27 @@ public class WatchModeService {
                     .build()
                     .toUriString();
 
-            return restTemplate.getForObject(url, SearchResponseDTO.class);
+            SearchResponseDTO response = restTemplate.getForObject(url, SearchResponseDTO.class);
+
+            // Fetch title details for the first 5 title results
+            if (response != null && response.getTitle_results() != null && !response.getTitle_results().isEmpty()) {
+                int limit = Math.min(5, response.getTitle_results().size());
+
+                for (int i = 0; i < limit; i++) {
+                    SearchResultDTO result = response.getTitle_results().get(i);
+                    if (result.getId() != null) {
+                        try {
+                            TitleDetailsDTO details = getTitleDetails(result.getId());
+                            result.setDetails(details);
+                        } catch (Exception e) {
+                            // Log the error but continue processing other results
+                            System.err.println("Error fetching details for title ID " + result.getId() + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+
+            return response;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No results found for the search criteria", e);

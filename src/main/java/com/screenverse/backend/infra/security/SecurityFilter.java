@@ -5,50 +5,46 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Component
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-   @Autowired
-   private TokenService tokenService;
-
-   @Autowired
-   private UsersRepository usersRepository;
+   private final TokenService tokenService;
+   private final UsersRepository usersRepository;
 
    @Override
    protected void doFilterInternal(HttpServletRequest request,
                                    HttpServletResponse response,
                                    FilterChain filterChain) throws ServletException, IOException {
+      var authHeader = request.getHeader("Authorization");
 
-      String tokenJWT = getToken(request);
-      if (tokenJWT != null) {
-         String subject = tokenService.getSubject(tokenJWT);
-         // Aqui presumimos que `findByClerkUserId` retorna um objeto que implementa UserDetails
-         Object user = usersRepository.findByClerkUserId(subject);
+      if (authHeader != null && authHeader.startsWith("Bearer ")) {
+         var token = authHeader.substring(7);
+         var subject = tokenService.validateToken(token);
 
-         UsernamePasswordAuthenticationToken auth =
-              new UsernamePasswordAuthenticationToken(user, null,
-                   null
-              );
+         if (subject != null) {
+            var user = usersRepository.findByEmail(subject);
 
-         SecurityContextHolder.getContext().setAuthentication(auth);
+            if (user.isPresent()) {
+               var authentication = new UsernamePasswordAuthenticationToken(
+                    user.get(),
+                    null,
+                    new ArrayList<>()
+               );
+               SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+         }
       }
 
       filterChain.doFilter(request, response);
-   }
-
-   private String getToken(HttpServletRequest request) {
-      String authHeader = request.getHeader("Authorization");
-      if (authHeader != null && authHeader.startsWith("Bearer ")) {
-         return authHeader.substring(7);
-      }
-      return null;
    }
 }
