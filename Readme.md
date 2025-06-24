@@ -1,464 +1,364 @@
-# ScreenVerse Backend
+# Screenverse Backend
 
-A robust backend application for movie and TV series management, built with Spring Boot, offering authentication, watchlists, ratings, and WatchMode API integration.
+A Spring Boot REST API backend for Screenverse, a movie and TV show management platform that integrates with the WatchMode API to provide comprehensive entertainment content information.
 
-## 🚀 Technologies Used
+## 🎬 Features
+
+- **User Authentication**: Integration with Clerk for secure user authentication and management
+- **Content Search**: Search for movies and TV shows using the WatchMode API
+- **Watchlist Management**: Add, update, and track content in your personal watchlist
+- **Rating System**: Rate and review watched content with a 1-5 star rating system
+- **User Profiles**: Manage user information and preferences
+- **RESTful API**: Clean, well-documented REST endpoints
+- **Database Management**: MySQL database with Flyway migrations
+- **Security**: JWT-based authentication with Spring Security
+
+## 🛠️ Technology Stack
 
 - **Java 17**
 - **Spring Boot 3.4.5**
 - **Spring Security** - Authentication and authorization
-- **Spring Data JPA** - Data persistence
+- **Spring Data JPA** - Database operations
 - **MySQL** - Database
 - **Flyway** - Database migrations
-- **JWT (Auth0)** - Authentication tokens
-- **Lombok** - Boilerplate reduction
+- **Lombok** - Code generation
 - **ModelMapper** - Object mapping
-- **Maven** - Dependency management
+- **Auth0 JWT** - Token management
+- **Maven** - Build tool
 
-## 📋 Features
+## 📋 Prerequisites
 
-- ✅ Clerk authentication (Google/GitHub)
-- ✅ User management
-- ✅ Watchlist functionality
-- ✅ Rating system
-- ✅ WatchMode API integration
-- ✅ Movie and TV series search
-- ✅ JWT for stateless authentication
+Before running this application, make sure you have the following installed:
 
-## 🛠️ Environment Setup
+- **Java 17** or higher
+- **Maven 3.6** or higher
+- **MySQL 8.0** or higher
+- **WatchMode API Key** (get it from [WatchMode](https://www.watchmode.com/))
 
-### Prerequisites
+## 🚀 Quick Start
 
-- Java 17+
-- MySQL 8.0+
-- Maven 3.6+
-- WatchMode account (for API key)
+### 1. Clone the Repository
 
-### Installation
-
-1. **Clone the repository:**
 ```bash
 git clone <repository-url>
-cd screenverse-backend
+cd backend
 ```
 
-2. **Configure MySQL database:**
+### 2. Database Setup
+
+1. Create a MySQL database:
 ```sql
 CREATE DATABASE screenverse;
 ```
 
-3. **Set up environment variables:**
-   Copy `.env_example` to `.env` and configure:
-```env
-WATCHMODE_API_KEY=your_watchmode_api_key_here
-```
-
-4. **Configure application.properties:**
+2. Update the database configuration in `src/main/resources/application.properties`:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/screenverse
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
 
-5. **Run the application:**
+### 3. Environment Variables
+
+Set the following environment variable:
 ```bash
+export WATCHMODE_API_KEY=your_watchmode_api_key
+```
+
+### 4. Run the Application
+
+```bash
+# Using Maven wrapper
 ./mvnw spring-boot:run
+
+# Or using Maven directly
+mvn spring-boot:run
 ```
 
-The application will be available at `http://localhost:8080`
+The application will start on `http://localhost:8080`
 
-## 📚 API Endpoints
+## 📚 API Documentation
 
-### 🔐 Authentication (`/auth`)
+### Authentication Endpoints
 
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| `POST` | `/auth/signup` | Create new account | ❌ |
-| `POST` | `/auth/clerk/signin` | Login with Clerk | ❌ |
-| `POST` | `/auth/clerk/auth` | Unified authentication | ❌ |
-| `POST` | `/auth/refresh` | Refresh token | ❌ |
-| `GET` | `/auth/check-user` | Check if user exists | ❌ |
+#### POST `/auth/signup`
+Register a new user with Clerk authentication.
 
-#### Example - Signup/Signin:
+**Request Body:**
 ```json
-POST /auth/signup
-Content-Type: application/json
-
 {
-  "clerkUserId": "user_123abc",
+  "clerkUserId": "user_123",
   "email": "user@example.com",
   "firstName": "John",
-  "lastName": "Doe",
-  "authProvider": "google"
+  "lastName": "Doe"
 }
 ```
 
-#### Response:
+#### POST `/auth/clerk/signin`
+Sign in with Clerk authentication.
+
+#### POST `/auth/refresh`
+Refresh JWT token.
+
+**Request Body:**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "userId": 1,
-  "email": "user@example.com",
-  "firstName": "John",
-  "lastName": "Doe",
-  "isNewUser": true
+  "refreshToken": "your_refresh_token"
 }
 ```
 
-### 👥 Users (`/users`)
+#### GET `/auth/check-user`
+Check if a user exists by email or Clerk user ID.
 
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| `GET` | `/users` | List all users | ✅ |
-| `GET` | `/users/{id}` | Get user by ID | ✅ |
-| `POST` | `/users` | Create user | ✅ |
-| `PUT` | `/users/{id}` | Update user | ✅ |
-| `DELETE` | `/users/{id}` | Delete user | ✅ |
+**Query Parameters:**
+- `email` (optional): User's email
+- `clerkUserId` (optional): Clerk user ID
 
-### 📺 WatchMode API (`/api`)
+### WatchMode API Endpoints
 
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| `GET` | `/api/search` | Search movies/TV series | ✅ |
-| `GET` | `/api/title/{titleId}` | Get title details | ✅ |
+#### GET `/api/search`
+Search for movies and TV shows.
 
-#### Example - Search:
-```bash
-GET /api/search?searchValue=Breaking Bad&searchField=name
-Authorization: Bearer <token>
+**Query Parameters:**
+- `searchValue` (required): Search term (e.g., "Breaking Bad")
+- `searchField` (optional): Search field (default: "name")
+
+**Example:**
+```
+GET /api/search?searchValue=Breaking Bad
 ```
 
-#### Response:
-```json
-{
-  "title_results": [
-    {
-      "resultType": "title",
-      "id": 12345,
-      "name": "Breaking Bad",
-      "type": "tv_series",
-      "year": 2008,
-      "details": {
-        "title": "Breaking Bad",
-        "plot_overview": "A high school chemistry teacher...",
-        "poster": "https://...",
-        "user_rating": 9.5,
-        "genres": [18, 80],
-        "genre_names": ["Drama", "Crime"]
-      }
-    }
-  ],
-  "people_results": []
-}
+#### GET `/api/title/{titleId}`
+Get detailed information about a specific title.
+
+**Example:**
+```
+GET /api/title/12345
 ```
 
-### 🎬 Watchlist (`/api/watchlist`)
+### Watchlist Endpoints
 
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| `GET` | `/api/watchlist` | List watchlist items | ✅ |
-| `POST` | `/api/watchlist` | Add to watchlist | ✅ |
-| `PUT` | `/api/watchlist/{id}` | Update watchlist item | ✅ |
-| `DELETE` | `/api/watchlist/{id}` | Remove from watchlist | ✅ |
-| `PATCH` | `/api/watchlist/{id}/watched` | Mark as watched | ✅ |
+All watchlist endpoints require authentication.
 
-#### Example - Add to Watchlist:
+#### GET `/api/watchlist`
+Get all watchlist items for the authenticated user.
+
+#### POST `/api/watchlist`
+Add a title to the watchlist.
+
+**Request Body:**
 ```json
-POST /api/watchlist
-Authorization: Bearer <token>
-Content-Type: application/json
-
 {
   "titleId": 12345,
   "name": "Breaking Bad",
-  "watched": false,
   "plotOverview": "A high school chemistry teacher...",
   "year": 2008,
   "type": "tv_series",
-  "genreName": "Drama, Crime",
-  "poster": "https://image.url"
+  "genreName": "Drama",
+  "poster": "https://example.com/poster.jpg"
 }
 ```
 
-### ⭐ Ratings (`/api/rated`)
+#### PUT `/api/watchlist/{id}`
+Update a watchlist item.
 
-| Method | Endpoint | Description | Authentication |
-|--------|----------|-------------|----------------|
-| `GET` | `/api/rated` | List rated items | ✅ |
-| `POST` | `/api/rated` | Rate title | ✅ |
-| `PUT` | `/api/rated/{id}` | Update rating | ✅ |
-| `DELETE` | `/api/rated/{id}` | Remove rating | ✅ |
+#### DELETE `/api/watchlist/{id}`
+Delete a watchlist item.
 
-#### Example - Rate Title:
+#### PATCH `/api/watchlist/{id}/watched`
+Mark a watchlist item as watched or unwatched.
+
+**Query Parameters:**
+- `watched` (required): Boolean value
+
+### Rated Content Endpoints
+
+All rated endpoints require authentication.
+
+#### GET `/api/rated`
+Get all rated items for the authenticated user.
+
+#### POST `/api/rated`
+Rate a title.
+
+**Request Body:**
 ```json
-POST /api/rated
-Authorization: Bearer <token>
-Content-Type: application/json
-
 {
   "titleId": 12345,
   "name": "Breaking Bad",
   "rating": 4.5,
-  "watched": true,
   "plotOverview": "A high school chemistry teacher...",
   "year": 2008,
   "type": "tv_series",
-  "genreName": "Drama, Crime",
-  "poster": "https://image.url"
+  "genreName": "Drama",
+  "poster": "https://example.com/poster.jpg"
 }
 ```
 
-## 🔑 Authentication
+#### PUT `/api/rated/{id}`
+Update a rated item.
 
-### Required Headers
+#### DELETE `/api/rated/{id}`
+Delete a rated item.
 
-For authenticated routes, include the header:
-```
-Authorization: Bearer <access_token>
-```
+### User Management Endpoints
 
-### Token Refresh
+#### GET `/api/users/profile`
+Get the authenticated user's profile.
 
+#### PUT `/api/users/profile`
+Update the authenticated user's profile.
+
+**Request Body:**
 ```json
-POST /auth/refresh
-Content-Type: application/json
-
 {
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com"
 }
 ```
 
-## 🗄️ Database Structure
+## 🗄️ Database Schema
 
-### `users` Table
-```sql
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    clerk_user_id VARCHAR(255) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    auth_provider VARCHAR(50)
-);
-```
+### Users Table
+- `id`: Primary key
+- `clerk_user_id`: Unique Clerk user identifier
+- `email`: User's email address
+- `first_name`: User's first name
+- `last_name`: User's last name
+- `auth_provider`: Authentication provider
 
-### `watchlist` Table
-```sql
-CREATE TABLE watchlist (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    title_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    watched BOOLEAN DEFAULT FALSE,
-    plot_overview TEXT,
-    year INT,
-    type VARCHAR(50),
-    genre_name VARCHAR(255),
-    poster VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
+### Watchlist Table
+- `id`: Primary key
+- `user_id`: Foreign key to users table
+- `title_id`: WatchMode title ID
+- `name`: Title name
+- `watched`: Whether the title has been watched
+- `plot_overview`: Title description
+- `year`: Release year
+- `type`: Content type (movie, tv_series, etc.)
+- `genre_name`: Genre
+- `poster`: Poster image URL
 
-### `rated` Table
-```sql
-CREATE TABLE rated (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    title_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    watched BOOLEAN DEFAULT TRUE,
-    rating FLOAT NOT NULL,
-    plot_overview TEXT,
-    year INT,
-    type VARCHAR(50),
-    genre_name VARCHAR(255),
-    poster VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    CHECK (rating >= 1.0 AND rating <= 5.0)
-);
-```
+### Rated Table
+- `id`: Primary key
+- `user_id`: Foreign key to users table
+- `title_id`: WatchMode title ID
+- `name`: Title name
+- `watched`: Whether the title has been watched (default: true)
+- `rating`: User rating (1.0 - 5.0)
+- `plot_overview`: Title description
+- `year`: Release year
+- `type`: Content type
+- `genre_name`: Genre
+- `poster`: Poster image URL
 
-## 📁 Project Structure
+## 🔧 Configuration
 
-```
-src/main/java/com/screenverse/backend/
-├── controller/          # REST Controllers
-│   ├── auth/           # Authentication
-│   ├── users/          # Users
-│   ├── watchlist/      # Watchlist
-│   ├── rated/          # Ratings
-│   └── watchmode/      # WatchMode API
-├── domain/             # JPA Entities
-│   ├── users/
-│   ├── watchlist/
-│   └── rated/
-├── dto/                # Data Transfer Objects
-├── repository/         # JPA Repositories
-├── service/            # Business Logic
-├── infra/              # Infrastructure Configuration
-│   └── security/       # Security and JWT
-└── exception/          # Custom Exceptions
-```
+### Application Properties
 
-## 🔧 Important Configurations
-
-### Environment Variables
+Key configuration options in `application.properties`:
 
 ```properties
-# WatchMode API
-WATCHMODE_API_KEY=your_api_key
-
-# JWT Secret
-api.security.token.secret=your_jwt_secret
-
-# Database
+# Database Configuration
 spring.datasource.url=jdbc:mysql://localhost:3306/screenverse
 spring.datasource.username=root
 spring.datasource.password=root
+
+# WatchMode API Configuration
+watchmode.api.key=${WATCHMODE_API_KEY}
+watchmode.api.base-url=https://api.watchmode.com/v1
+
+# JWT Configuration
+api.security.token.secret=your_jwt_secret
+
+# Server Configuration
+server.address=0.0.0.0
 ```
-
-### CORS
-
-By default, the application accepts requests from any origin during development. For production, configure properly in `SecurityConfigurations.java`.
-
-## 🚀 Deployment
-
-### Docker (Future)
-
-```dockerfile
-FROM openjdk:17-jdk-slim
-COPY target/backend-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
-
-### Maven Commands
-
-```bash
-# Compile
-./mvnw compile
-
-# Run tests
-./mvnw test
-
-# Generate JAR
-./mvnw package
-
-# Run application
-./mvnw spring-boot:run
-```
-
-## 🐛 Error Handling
-
-The application has a global exception handling system that returns standardized responses:
-
-```json
-{
-  "timestamp": "2025-01-20T10:30:00",
-  "message": "User already exists with email: user@example.com",
-  "status": 409,
-  "error": "USER_ALREADY_EXISTS",
-  "action": "REDIRECT_TO_SIGNIN"
-}
-```
-
-## 📊 API Response Codes
-
-| Code | Description |
-|------|-------------|
-| `200` | Success |
-| `201` | Created |
-| `204` | No Content |
-| `400` | Bad Request |
-| `401` | Unauthorized |
-| `403` | Forbidden |
-| `404` | Not Found |
-| `409` | Conflict |
-| `500` | Internal Server Error |
-
-## 🔒 Security Features
-
-- **JWT Authentication** - Stateless authentication
-- **Password Encoding** - BCrypt hashing
-- **CORS Configuration** - Cross-origin resource sharing
-- **Input Validation** - Request validation
-- **SQL Injection Protection** - JPA parameterized queries
-
-## 📝 Logging
-
-The application uses Spring Boot default logging. For production, configure `logback-spring.xml` appropriately.
 
 ## 🧪 Testing
 
+Run the test suite:
+
 ```bash
-# Run all tests
 ./mvnw test
-
-# Run specific test class
-./mvnw test -Dtest=AuthServiceTest
-
-# Run with coverage
-./mvnw test jacoco:report
 ```
 
-## 📖 API Documentation
+## 📦 Building
 
-### Postman Collection
+Build the application:
 
-Import the provided Postman collection to test all endpoints:
-
-1. Set environment variables:
-    - `baseUrl`: `http://localhost:8080`
-    - `token`: Your JWT token
-
-2. Test authentication flow:
-    - Sign up → Get tokens
-    - Use access token for protected routes
-    - Refresh token when needed
-
-### Swagger (Future Enhancement)
-
-Add Swagger UI for interactive API documentation:
-
-```xml
-<dependency>
-    <groupId>org.springdoc</groupId>
-    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version>2.0.0</version>
-</dependency>
+```bash
+./mvnw clean package
 ```
+
+The JAR file will be created in the `target/` directory.
+
+## 🚀 Deployment
+
+### Docker (Recommended)
+
+1. Build the Docker image:
+```bash
+docker build -t screenverse-backend .
+```
+
+2. Run the container:
+```bash
+docker run -p 8080:8080 \
+  -e WATCHMODE_API_KEY=your_api_key \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/screenverse \
+  screenverse-backend
+```
+
+### Traditional Deployment
+
+1. Build the JAR:
+```bash
+./mvnw clean package
+```
+
+2. Run the application:
+```bash
+java -jar target/backend-0.0.1-SNAPSHOT.jar
+```
+
+## 🔒 Security
+
+- **JWT Authentication**: Secure token-based authentication
+- **Clerk Integration**: Third-party authentication provider
+- **Spring Security**: Comprehensive security framework
+- **Input Validation**: Request validation using Bean Validation
+- **CORS Configuration**: Configurable Cross-Origin Resource Sharing
 
 ## 🤝 Contributing
 
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Guidelines
+## 📝 License
 
-- Follow Java naming conventions
-- Write unit tests for new features
-- Update documentation for API changes
-- Use meaningful commit messages
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📄 License
+## 🆘 Support
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+If you encounter any issues or have questions:
 
-## 🎯 Roadmap
+1. Check the [Issues](https://github.com/your-repo/issues) page
+2. Create a new issue with detailed information
+3. Contact the development team
 
-- [ ] Add Swagger documentation
-- [ ] Implement Redis caching
-- [ ] Add rate limiting
-- [ ] Docker containerization
-- [ ] CI/CD pipeline
-- [ ] Email notifications
-- [ ] Advanced search filters
-- [ ] Social features (sharing lists)
+## 🔄 Version History
+
+- **v0.0.1-SNAPSHOT**: Initial release with basic functionality
+  - User authentication with Clerk
+  - WatchMode API integration
+  - Watchlist management
+  - Rating system
+  - User profile management
 
 ---
 
-**ScreenVerse Backend** - Built with ❤️ using Spring Boot
+**Screenverse Backend** - Your gateway to comprehensive entertainment content management! 🎬✨
